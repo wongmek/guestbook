@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>สมุดเยี่ยมเกียรติยศดิจิทัล | Royal Prestige Digital Guestbook</title>
+  <!-- Google Fonts: Sarabun & Charm (ฟอนต์ไทยสไตล์อาลักษณ์) -->
+  <link href="https://fonts.googleapis.com/css2?family=Charm:wght@400;700&family=Prompt:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Signature Pad & Confetti & QRCode -->
+  <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+  <style>
+    :root {
+      --royal-navy: #0B132B;
+      --deep-blue: #1C2541;
+      --gold-primary: #D4AF37;
+      --gold-light: #F3E5AB;
+    }
+    body {
+      font-family: 'Prompt', sans-serif;
+      background: radial-gradient(circle at top, #1C2541 0%, #0B132B 100%);
+      color: #F8F9FA;
+      overflow-x: hidden;
+      touch-action: manipulation;
+    }
+    .font-royal {
+      font-family: 'Charm', cursive;
+    }
+    .gold-gradient-text {
+      background: linear-gradient(90deg, #D4AF37, #FFF3B0, #AA7C11);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .gold-border {
+      border: 2px solid #D4AF37;
+      box-shadow: 0 0 25px rgba(212, 175, 55, 0.2);
+    }
+    /* กระดาษสมุดเยี่ยมระดับพรีเมียม */
+    .paper-canvas-container {
+      background-color: #FCFBF7;
+      background-image: 
+        radial-gradient(rgba(212, 175, 55, 0.08) 1px, transparent 0),
+        linear-gradient(to bottom, transparent 95%, rgba(212, 175, 55, 0.18) 95%);
+      background-size: 24px 24px, 100% 48px;
+      box-shadow: inset 0 0 40px rgba(180, 140, 50, 0.15), 0 10px 30px rgba(0,0,0,0.5);
+    }
+    /* แอนิเมชันไฟกระพริบเตือนก่อนถ่ายภาพอัตโนมัติ */
+    @keyframes pulseGold {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.8); }
+      50% { box-shadow: 0 0 0 12px rgba(212, 175, 55, 0); }
+    }
+    .camera-capturing {
+      animation: pulseGold 1s infinite;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between">
+
+  <!-- TOP NAVIGATION BAR -->
+  <header class="w-full px-6 py-4 bg-[#0B132B]/90 border-b border-[#D4AF37]/40 flex items-center justify-between sticky top-0 z-50 backdrop-blur-md">
+    <div class="flex items-center space-x-4">
+      <div class="w-12 h-12 rounded-full bg-gradient-to-br from-[#D4AF37] to-[#8A6408] flex items-center justify-center text-[#0B132B] font-bold text-xl shadow-lg">
+        ตรา
+      </div>
+      <div>
+        <h1 class="text-xl md:text-2xl font-bold gold-gradient-text tracking-wide">สมุดเยี่ยมเกียรติยศดิจิทัล</h1>
+        <p class="text-xs text-gray-300">ROYAL PRESTIGE INTERACTIVE DIGITAL GUESTBOOK</p>
+      </div>
+    </div>
+
+    <!-- สวิตช์สลับโหมด: หน้าเขียน iPad vs หน้า Dashboard โรงเรียน -->
+    <div class="flex space-x-2 bg-[#1C2541] p-1.5 rounded-xl border border-[#D4AF37]/40">
+      <button id="btnModeWrite" onclick="switchView('write')" class="px-4 py-2 rounded-lg text-sm font-semibold bg-[#D4AF37] text-[#0B132B] transition">
+        ✍️ โหมดลงนาม (iPad Kiosk)
+      </button>
+      <button id="btnModeDashboard" onclick="switchView('dashboard')" class="px-4 py-2 rounded-lg text-sm font-semibold text-gray-300 hover:text-white transition">
+        🏛️ ทำเนียบผู้มาเยือน (Dashboard)
+      </button>
+    </div>
+  </header>
+
+  <!-- ========================================================= -->
+  <!-- VIEW 1: IPAD WRITING KIOSK                                -->
+  <!-- ========================================================= -->
+  <main id="viewWrite" class="flex-1 container mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+    
+    <!-- คอลัมน์ซ้าย: กล้อง Auto-Capture & ข้อมูลผู้มาเยือน (4 คอลัมน์) -->
+    <section class="lg:col-span-4 bg-[#141E30]/90 rounded-2xl p-5 gold-border flex flex-col justify-between space-y-4">
+      
+      <!-- กล้องอัตโนมัติ (Smart Auto-Capture) -->
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs font-semibold uppercase tracking-wider text-[#D4AF37] flex items-center gap-1.5">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
+            ระบบบันทึกภาพอัตโนมัติเมื่อเริ่มเขียน
+          </span>
+          <button onclick="manualCapturePhoto()" class="text-xs bg-[#1C2541] hover:bg-[#D4AF37] hover:text-[#0B132B] text-[#D4AF37] px-2.5 py-1 rounded border border-[#D4AF37]/50 transition">
+            📸 ถ่ายใหม่
+          </button>
+        </div>
+
+        <div id="cameraFrame" class="relative w-full h-52 rounded-xl overflow-hidden bg-black border-2 border-[#D4AF37]">
+          <video id="webcamVideo" autoplay playsinline muted class="w-full h-full object-cover transform scale-x-[-1]"></video>
+          <img id="capturedPhotoPreview" class="hidden w-full h-full object-cover" alt="ภาพถ่ายผู้มาเยือน" />
+          
+          <!-- แถบแจ้งเตือนสถานะการถ่ายภาพอัตโนมัติ -->
+          <div id="captureStatusBadge" class="absolute bottom-2 left-2 right-2 bg-[#0B132B]/85 text-center py-1 px-2 rounded text-xs text-[#F3E5AB] border border-[#D4AF37]/40">
+            ✨ เมื่อท่านจรดปากกาเขียน ระบบจะบันทึกภาพที่ระลึกอัตโนมัติ
+          </div>
+          <!-- ตัวเลขนับถอยหลัง -->
+          <div id="countdownOverlay" class="hidden absolute inset-0 bg-black/40 flex items-center justify-center text-6xl font-bold text-[#D4AF37]">
+            3
+          </div>
+        </div>
+      </div>
+
+      <!-- ฟอร์มข้อมูลผู้มาเยือน -->
+      <div class="space-y-3">
+        <div>
+          <label class="block text-xs text-[#F3E5AB] mb-1">ชื่อ - นามสกุล หรือ ชื่อคณะผู้มาเยือน *</label>
+          <input id="guestName" type="text" placeholder="เช่น ดร.สมชาย ใจดี" 
+            class="w-full px-3.5 py-2.5 rounded-lg bg-[#0B132B] border border-[#D4AF37]/50 text-white focus:outline-none focus:border-[#D4AF37] text-sm">
+        </div>
+        <div>
+          <label class="block text-xs text-[#F3E5AB] mb-1">ตำแหน่ง / หน่วยงานสังกัด</label>
+          <input id="guestTitle" type="text" placeholder="เช่น ผู้อำนวยการสำนักงานเขตพื้นที่การศึกษา" 
+            class="w-full px-3.5 py-2.5 rounded-lg bg-[#0B132B] border border-[#D4AF37]/50 text-white focus:outline-none focus:border-[#D4AF37] text-sm">
+        </div>
+        <div>
+          <label class="block text-xs text-[#F3E5AB] mb-1">ประเภทผู้มาเยือน</label>
+          <select id="visitorCategory" class="w-full px-3.5 py-2.5 rounded-lg bg-[#0B132B] border border-[#D4AF37]/50 text-[#D4AF37] focus:outline-none text-sm">
+            <option value="แขกผู้มีเกียรติ (VIP)">🌟 แขกผู้มีเกียรติ (VIP / ผู้บริหาร)</option>
+            <option value="คณะศึกษาดูงาน">🏛️ คณะศึกษาดูงาน / หน่วยงานราชการ</option>
+            <option value="ศิษย์เก่า">🎓 ศิษย์เก่าทรงคุณวุฒิ</option>
+            <option value="ผู้ปกครองและชุมชน">🤝 ผู้ปกครองและภาคีเครือข่าย</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- การเลือกตราประทับครั่ง (Interactive Wax Seal) -->
+      <div class="pt-2 border-t border-gray-700">
+        <label class="block text-xs text-[#F3E5AB] mb-2">เลือกตราประทับเกียรติยศ (แตะเพื่อประทับบนกระดาษ)</label>
+        <div class="grid grid-cols-3 gap-2">
+          <button onclick="setWaxSeal('GOLD_CREST', 'เจริญรุ่งเรือง')" class="p-2 rounded-lg bg-[#0B132B] border border-[#D4AF37] text-xs text-[#D4AF37] hover:bg-[#D4AF37]/20">
+            🪙 ครั่งทองคำ
+          </button>
+          <button onclick="setWaxSeal('ROYAL_RED', 'เกียรติยศยิ่งใหญ่')" class="p-2 rounded-lg bg-[#0B132B] border border-red-500 text-xs text-red-300 hover:bg-red-900/30">
+            🧧 ครั่งแดงโบราณ
+          </button>
+          <button onclick="setWaxSeal('NONE', '')" class="p-2 rounded-lg bg-[#0B132B] border border-gray-600 text-xs text-gray-400">
+            ❌ ไม่ประทับตรา
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- คอลัมน์ขวา: กระดาษเขียนสมุดเยี่ยมด้วย Apple Pencil / นิ้วมือ (8 คอลัมน์) -->
+    <section class="lg:col-span-8 flex flex-col justify-between space-y-4">
+      
+      <!-- กระดานกระดาษเกียรติยศ -->
+      <div class="relative flex-1 min-h-[420px] rounded-2xl paper-canvas-container gold-border overflow-hidden flex flex-col justify-between p-4">
+        
+        <!-- หัวกระดาษสมุดเยี่ยม -->
+        <div class="flex justify-between items-center border-b border-[#D4AF37]/40 pb-2 pointer-events-none select-none z-10">
+          <div>
+            <h2 class="font-royal text-2xl text-[#8A6408] font-bold">สมุดลงนามผู้มาเยือนเกียรติยศ</h2>
+            <p class="text-xs text-amber-900/70">โปรดจรดปากกาเพื่อบันทึกคำอวยพรและลายมือชื่อเป็นที่ระลึก</p>
+          </div>
+          <span id="currentDateLabel" class="text-xs font-semibold text-amber-900/80 bg-amber-100 px-3 py-1 rounded-full border border-amber-300"></span>
+        </div>
+
+        <!-- ลายน้ำตราโรงเรียนตรงกลางกระดาษ -->
+        <div class="absolute inset-0 flex items-center justify-center pointer-events-none select-none opacity-10">
+          <div class="w-64 h-64 rounded-full border-8 border-[#8A6408] flex items-center justify-center">
+            <span class="font-royal text-4xl text-[#8A6408] font-bold text-center">ตราประจำโรงเรียน</span>
+          </div>
+        </div>
+
+        <!-- HTML5 Canvas สำหรับเขียนลายมือ -->
+        <canvas id="signatureCanvas" class="absolute inset-0 w-full h-full cursor-crosshair z-20"></canvas>
+
+        <!-- ตราประทับครั่ง 3 มิติ (แสดงมุมขวาล่างของกระดาษ) -->
+        <div id="waxSealOverlay" class="pointer-events-none z-30 self-end mt-auto mb-2 mr-4 w-24 h-24 rounded-full bg-gradient-to-br from-yellow-500 via-amber-600 to-yellow-900 border-4 border-yellow-200 shadow-2xl flex flex-col items-center justify-center transform rotate-[-8deg] transition-all duration-300">
+          <span class="text-[10px] text-yellow-100 tracking-widest uppercase">SCHOOL VIP</span>
+          <span id="waxSealText" class="font-royal text-sm font-bold text-white text-center leading-tight">เจริญรุ่งเรือง</span>
+        </div>
+      </div>
+
+      <!-- แถบเครื่องมือเลือกสีหมึกและปุ่มบันทึก -->
+      <div class="bg-[#141E30]/95 p-4 rounded-2xl gold-border flex flex-wrap items-center justify-between gap-4">
+        
+        <!-- เลือกสีหมึกปากกา -->
+        <div class="flex items-center space-x-3">
+          <span class="text-xs text-[#F3E5AB]">สีหมึกปากกา:</span>
+          <button onclick="changeInk('#B48308', 2.5, 5.5)" title="หมึกทองคำ 24K" class="w-9 h-9 rounded-full bg-gradient-to-br from-yellow-300 via-amber-500 to-yellow-700 border-2 border-white shadow-md transform hover:scale-110 transition"></button>
+          <button onclick="changeInk('#0B132B', 2.0, 4.5)" title="หมึกน้ำเงินราชสำนัก" class="w-9 h-9 rounded-full bg-[#0B132B] border-2 border-[#D4AF37] shadow-md transform hover:scale-110 transition"></button>
+          <button onclick="changeInk('#4A0404', 2.0, 4.5)" title="หมึกแดงเลือดนก" class="w-9 h-9 rounded-full bg-[#4A0404] border-2 border-[#D4AF37] shadow-md transform hover:scale-110 transition"></button>
+          
+          <button onclick="undoStroke()" class="ml-3 px-3 py-1.5 rounded-lg bg-[#1C2541] text-xs text-gray-200 border border-gray-500 hover:bg-gray-700">
+            ↩️ ย้อนกลับ
+          </button>
+          <button onclick="clearCanvas()" class="px-3 py-1.5 rounded-lg bg-red-950/70 text-xs text-red-300 border border-red-700 hover:bg-red-900">
+            🗑️ ล้างกระดาษ
+          </button>
+        </div>
+
+        <!-- ปุ่มบันทึกข้อมูล -->
+        <button id="btnSubmit" onclick="submitGuestbook()" class="px-8 py-3 rounded-xl bg-gradient-to-r from-[#D4AF37] via-[#F3E5AB] to-[#AA7C11] text-[#0B132B] font-bold text-base shadow-xl hover:brightness-110 transform active:scale-95 transition flex items-center space-x-2">
+          <span>✨ บันทึกคำอวยพรลงสมุดเกียรติยศ</span>
+        </button>
+      </div>
+    </section>
+  </main>
+
+  <!-- ========================================================= -->
+  <!-- VIEW 2: SCHOOL LIVE DASHBOARD (HALL OF FAME)              -->
+  <!-- ========================================================= -->
+  <section id="viewDashboard" class="hidden flex-1 container mx-auto p-4 md:p-6 space-y-6">
+    
+    <!-- แถบสถิติ KPI สำหรับผู้บริหารและหน้าจอประชาสัมพันธ์โรงเรียน -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="bg-[#141E30] p-4 rounded-xl gold-border">
+        <p class="text-xs text-gray-400">ผู้ร่วมลงนามทั้งหมด</p>
+        <h3 id="statTotal" class="text-3xl font-bold gold-gradient-text mt-1">0 ท่าน</h3>
+      </div>
+      <div class="bg-[#141E30] p-4 rounded-xl border border-emerald-500/40">
+        <p class="text-xs text-gray-400">ผู้มาเยือนวันนี้</p>
+        <h3 id="statToday" class="text-3xl font-bold text-emerald-400 mt-1">0 ท่าน</h3>
+      </div>
+      <div class="bg-[#141E30] p-4 rounded-xl border border-amber-500/40">
+        <p class="text-xs text-gray-400">แขก VIP / ผู้บริหาร</p>
+        <h3 id="statVIP" class="text-3xl font-bold text-amber-300 mt-1">0 ท่าน</h3>
+      </div>
+      <div class="bg-[#141E30] p-4 rounded-xl border border-cyan-500/40 flex flex-col justify-between">
+        <p class="text-xs text-gray-400">ค้นหาหรือกรองหมวดหมู่</p>
+        <input id="searchInput" oninput="renderDashboardCards()" type="text" placeholder="พิมพ์ชื่อ หรือหน่วยงาน..." class="mt-1 px-3 py-1.5 rounded bg-[#0B132B] border border-cyan-500/50 text-xs text-white focus:outline-none">
+      </div>
+    </div>
+
+    <!-- รายการสมุดเยี่ยมแบบการ์ดพรีเมียม -->
+    <div id="dashboardGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <!-- การ์ดจะถูกสร้างอัตโนมัติด้วย JavaScript -->
+    </div>
+  </section>
+
+  <!-- MODAL แสดงการ์ดที่ระลึก & QR CODE หลังบันทึกเสร็จ -->
+  <div id="souvenirModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-[#141E30] max-w-2xl w-full rounded-2xl gold-border p-6 space-y-4 text-center">
+      <h2 class="text-2xl font-bold gold-gradient-text">🙏 ขอขอบพระคุณที่ให้เกียรติมาเยือนโรงเรียนของเรา</h2>
+      <p class="text-xs text-gray-300">ระบบได้บันทึกภาพถ่ายและลายมือของท่านเข้าสู่ทำเนียบเกียรติยศเรียบร้อยแล้ว</p>
+      
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-center bg-[#0B132B] p-4 rounded-xl">
+        <div class="md:col-span-2">
+          <img id="modalCompositePreview" class="w-full rounded-lg border border-[#D4AF37]" alt="บัตรที่ระลึก" />
+        </div>
+        <div class="flex flex-col items-center space-y-2">
+          <div id="qrcodeContainer" class="bg-white p-2 rounded-lg"></div>
+          <p class="text-[11px] text-[#F3E5AB]">สแกน QR Code เพื่อดาวน์โหลดบัตรที่ระลึกเข้าโทรศัพท์มือถือ</p>
+        </div>
+      </div>
+
+      <button onclick="closeModalAndReset()" class="px-6 py-2.5 rounded-xl bg-[#D4AF37] text-[#0B132B] font-bold text-sm hover:brightness-110">
+        เสร็จสิ้น / ต้อนรับท่านต่อไป
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // =========================================================================
+    // ตั้งค่า URL ของ GOOGLE APPS SCRIPT WEB APP ที่ได้จากการ Deploy
+    // =========================================================================
+    const GAS_WEB_APP_URL = 'ใส่_URL_ของ_GOOGLE_APPS_SCRIPT_WEB_APP_ที่นี่';
+
+    let signaturePad;
+    let hasAutoCaptured = false;
+    let isCapturingInProgress = false;
+    let capturedPhotoDataUrl = '';
+    let selectedWaxSeal = { type: 'GOLD_CREST', text: 'เจริญรุ่งเรือง' };
+    let allVisitsData = [];
+
+    // เริ่มต้นระบบเมื่อโหลดหน้าเว็บ
+    window.addEventListener('DOMContentLoaded', () => {
+      initDateLabel();
+      initSignatureCanvas();
+      initWebcam();
+      loadSampleDemoData(); // โหลดข้อมูลตัวอย่างทันทีเพื่อให้เห็นภาพ Dashboard
+    });
+
+    function initDateLabel() {
+      const now = new Date();
+      document.getElementById('currentDateLabel').innerText = now.toLocaleDateString('th-TH', {
+        year: 'numeric', month: 'long', day: 'numeric'
+      });
+    }
+
+    // 1. ตั้งค่ากระดานเขียนลายมือ + ดักจับจังหวะเริ่มเขียนเพื่อถ่ายรูปอัตโนมัติ
+    function initSignatureCanvas() {
+      const canvas = document.getElementById('signatureCanvas');
+      
+      function resizeCanvas() {
+        const ratio = Math.max(window.devicePixelRatio || 1, 1);
+        const data = signaturePad ? signaturePad.toData() : null;
+        canvas.width = canvas.offsetWidth * ratio;
+        canvas.height = canvas.offsetHeight * ratio;
+        canvas.getContext('2d').scale(ratio, ratio);
+        if (signaturePad) {
+          signaturePad.clear();
+          if (data) signaturePad.fromData(data);
+        }
+      }
+
+      window.addEventListener('resize', resizeCanvas);
+      resizeCanvas();
+
+      signaturePad = new SignaturePad(canvas, {
+        minWidth: 2.2,
+        maxWidth: 5.2,
+        penColor: '#B48308', // เริ่มต้นด้วยหมึกทองคำ
+        velocityFilterWeight: 0.7
+      });
+
+      // Interactive Trigger: เมื่อผู้มาเยือนเริ่มจรดปากกาเขียนบนหน้าจอ iPad
+      signaturePad.addEventListener('beginStroke', () => {
+        playPenScratchSound();
+        if (!hasAutoCaptured && !isCapturingInProgress) {
+          triggerSmartAutoCapture();
+        }
+      });
+    }
+
+    // 2. เปิดกล้องหน้า iPad เตรียมพร้อมสำหรับการถ่ายอัตโนมัติ
+    async function initWebcam() {
+      const video = document.getElementById('webcamVideo');
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } },
+          audio: false
+        });
+        video.srcObject = stream;
+      } catch (err) {
+        document.getElementById('captureStatusBadge').innerText = '⚠️ ไม่พบการเชื่อมต่อกล้อง (สามารถเขียนลงนามได้ตามปกติ)';
+      }
+    }
+
+    // 3. ฟังก์ชันถ่ายภาพบุคคลอัตโนมัติหลังจากเริ่มเขียน 1.2 วินาที
+    function triggerSmartAutoCapture() {
+      isCapturingInProgress = true;
+      const frame = document.getElementById('cameraFrame');
+      const countdownEl = document.getElementById('countdownOverlay');
+      const badge = document.getElementById('captureStatusBadge');
+
+      frame.classList.add('camera-capturing');
+      countdownEl.classList.remove('hidden');
+      let count = 3;
+      countdownEl.innerText = count;
+      badge.innerText = '📸 กำลังบันทึกภาพที่ระลึกขณะท่านเขียน...';
+
+      const timer = setInterval(() => {
+        count--;
+        if (count > 0) {
+          countdownEl.innerText = count;
+        } else {
+          clearInterval(timer);
+          countdownEl.classList.add('hidden');
+          frame.classList.remove('camera-capturing');
+          captureSnapshotFromVideo();
+          hasAutoCaptured = true;
+          isCapturingInProgress = false;
+        }
+      }, 650);
+    }
+
+    function captureSnapshotFromVideo() {
+      const video = document.getElementById('webcamVideo');
+      if (!video.srcObject) return;
+
+      const tempCanvas = document.createElement('canvas');
+      tempCanvas.width = 800;
+      tempCanvas.height = 600;
+      const ctx = tempCanvas.getContext('2d');
+
+      // พลิกภาพกลับด้านเหมือนกระจกเงา
+      ctx.translate(tempCanvas.width, 0);
+      ctx.scale(-1, 1);
+      ctx.drawImage(video, 0, 0, tempCanvas.width, tempCanvas.height);
+
+      capturedPhotoDataUrl = tempCanvas.toDataURL('image/png');
+      
+      const previewImg = document.getElementById('capturedPhotoPreview');
+      previewImg.src = capturedPhotoDataUrl;
+      previewImg.classList.remove('hidden');
+      video.classList.add('hidden');
+
+      document.getElementById('captureStatusBadge').innerText = '✅ บันทึกภาพที่ระลึกเรียบร้อยแล้ว (กด "ถ่ายใหม่" ได้หากต้องการ)';
+      playShutterSound();
+    }
+
+    function manualCapturePhoto() {
+      const video = document.getElementById('webcamVideo');
+      const previewImg = document.getElementById('capturedPhotoPreview');
+      previewImg.classList.add('hidden');
+      video.classList.remove('hidden');
+      hasAutoCaptured = false;
+      triggerSmartAutoCapture();
+    }
+
+    // 4. สร้างรูปภาพลายมือบนกระดาษเกียรติยศ และสร้างการ์ดที่ระลึกรวม (Composite Card)
+    async function buildHandwritingAndCompositeImages() {
+      // 4.1 สร้างภาพลายมือพร้อมพื้นกระดาษพรีเมียม
+      const signCanvas = document.getElementById('signatureCanvas');
+      const exportSignCanvas = document.createElement('canvas');
+      exportSignCanvas.width = 1200;
+      exportSignCanvas.height = 750;
+      const sCtx = exportSignCanvas.getContext('2d');
+
+      // พื้นหลังกระดาษสีครีมทอง
+      sCtx.fillStyle = '#FCFBF7';
+      sCtx.fillRect(0, 0, 1200, 750);
+      sCtx.strokeStyle = '#D4AF37';
+      sCtx.lineWidth = 8;
+      sCtx.strokeRect(16, 16, 1168, 718);
+
+      // วาดลายมือจาก SignaturePad ลงไป
+      sCtx.drawImage(signCanvas, 0, 0, 1200, 750);
+
+      const handwritingBase64 = exportSignCanvas.toDataURL('image/png');
+
+      // 4.2 สร้างภาพ Composite Card (รวมภาพถ่ายแขก + ลายมือ + ชื่อ + วันที่)
+      const cardCanvas = document.createElement('canvas');
+      cardCanvas.width = 1400;
+      cardCanvas.height = 750;
+      const cCtx = cardCanvas.getContext('2d');
+
+      // พื้นหลังสีกรมท่าทอง
+      cCtx.fillStyle = '#0B132B';
+      cCtx.fillRect(0, 0, 1400, 750);
+      cCtx.strokeStyle = '#D4AF37';
+      cCtx.lineWidth = 6;
+      cCtx.strokeRect(20, 20, 1360, 710);
+
+      // วาดรูปถ่ายแขกทางซ้าย
+      if (capturedPhotoDataUrl) {
+        const guestImg = await loadImage(capturedPhotoDataUrl);
+        cCtx.drawImage(guestImg, 50, 60, 420, 320);
+        cCtx.strokeRect(50, 60, 420, 320);
+      }
+
+      // เขียนชื่อและตำแหน่งใต้ภาพถ่าย
+      const guestName = document.getElementById('guestName').value || 'แขกผู้มีเกียรติ';
+      const guestTitle = document.getElementById('guestTitle').value || '';
+      const category = document.getElementById('visitorCategory').value;
+
+      cCtx.fillStyle = '#D4AF37';
+      cCtx.font = 'bold 30px Prompt, sans-serif';
+      cCtx.fillText(guestName, 50, 435);
+      cCtx.fillStyle = '#E2E8F0';
+      cCtx.font = '22px Prompt, sans-serif';
+      cCtx.fillText(guestTitle, 50, 475);
+      cCtx.fillStyle = '#5BC0BE';
+      cCtx.font = '18px Prompt, sans-serif';
+      cCtx.fillText(category + ' | ' + new Date().toLocaleString('th-TH'), 50, 515);
+
+      // วาดภาพลายมือทางขวา
+      const signImg = await loadImage(handwritingBase64);
+      cCtx.drawImage(signImg, 510, 60, 840, 630);
+
+      const cardBase64 = cardCanvas.toDataURL('image/png');
+      return { handwritingBase64, cardBase64 };
+    }
+
+    function loadImage(src) {
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.src = src;
+      });
+    }
+
+    // 5. กดปุ่มบันทึกข้อมูลส่งไปยัง Google Sheets & Google Drive
+    async function submitGuestbook() {
+      if (signaturePad.isEmpty()) {
+        alert('กรุณาจรดปากกาเขียนคำอวยพรหรือลงลายมือชื่อก่อนกดบันทึกครับ');
+        return;
+      }
+
+      const btn = document.getElementById('btnSubmit');
+      btn.disabled = true;
+      btn.innerText = '⏳ กำลังบันทึกสู่ทำเนียบเกียรติยศ...';
+
+      // หากยังไม่ได้ถ่ายภาพ ให้ถ่ายทันทีก่อนส่ง
+      if (!capturedPhotoDataUrl) {
+        captureSnapshotFromVideo();
+      }
+
+      const { handwritingBase64, cardBase64 } = await buildHandwritingAndCompositeImages();
+
+      const payload = {
+        guestName: document.getElementById('guestName').value || 'แขกผู้มีเกียรติ',
+        guestTitle: document.getElementById('guestTitle').value || '-',
+        visitorCategory: document.getElementById('visitorCategory').value,
+        waxSealType: selectedWaxSeal.type,
+        photoBase64: capturedPhotoDataUrl,
+        handwritingBase64: handwritingBase64,
+        cardBase64: cardBase64
+      };
+
+      // เอฟเฟกต์พลุทองคำฉลองการลงนามสำเร็จ
+      confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 }, colors: ['#D4AF37', '#FFF3B0', '#AA7C11'] });
+
+      // บันทึกเข้า Local Array เพื่อให้เห็นใน Dashboard ทันทีแม้ยังไม่ได้ผูก URL จริง
+      const newRecord = {
+        visit_id: 'VIP-' + Date.now(),
+        timestamp: new Date().toLocaleString('th-TH'),
+        guest_name: payload.guestName,
+        guest_title: payload.guestTitle,
+        visitor_category: payload.visitorCategory,
+        photo_drive_url: capturedPhotoDataUrl,
+        handwriting_drive_url: handwritingBase64,
+        card_drive_url: cardBase64
+      };
+      allVisitsData.unshift(newRecord);
+      renderDashboardCards();
+
+      // ส่งข้อมูลจริงไปยัง Google Apps Script (เมื่อตั้งค่า URL แล้ว)
+      if (GAS_WEB_APP_URL.startsWith('https://script.google.com')) {
+        try {
+          await fetch(GAS_WEB_APP_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+        } catch (e) {
+          console.error('Upload Error:', e);
+        }
+      }
+
+      // แสดง Modal บัตรที่ระลึกพร้อม QR Code
+      showSouvenirModal(cardBase64, payload.guestName);
+
+      btn.disabled = false;
+      btn.innerText = '✨ บันทึกคำอวยพรลงสมุดเกียรติยศ';
+    }
+
+    function showSouvenirModal(cardDataUrl, guestName) {
+      document.getElementById('modalCompositePreview').src = cardDataUrl;
+      const qrContainer = document.getElementById('qrcodeContainer');
+      qrContainer.innerHTML = '';
+      new QRCode(qrContainer, {
+        text: window.location.href + '?guest=' + encodeURIComponent(guestName),
+        width: 128,
+        height: 128
+      });
+      document.getElementById('souvenirModal').classList.remove('hidden');
+    }
+
+    function closeModalAndReset() {
+      document.getElementById('souvenirModal').classList.add('hidden');
+      signaturePad.clear();
+      document.getElementById('guestName').value = '';
+      document.getElementById('guestTitle').value = '';
+      
+      // รีเซ็ตกล้องกลับสู่โหมดพร้อมถ่ายอัตโนมัติสำหรับแขกท่านถัดไป
+      document.getElementById('capturedPhotoPreview').classList.add('hidden');
+      document.getElementById('webcamVideo').classList.remove('hidden');
+      document.getElementById('captureStatusBadge').innerText = '✨ เมื่อท่านจรดปากกาเขียน ระบบจะบันทึกภาพที่ระลึกอัตโนมัติ';
+      hasAutoCaptured = false;
+      capturedPhotoDataUrl = '';
+    }
+
+    // ฟังก์ชันเสริมสำหรับปรับแต่งปากกา ตราครั่ง และเสียง ASMR
+    function changeInk(color, minW, maxW) {
+      signaturePad.penColor = color;
+      signaturePad.minWidth = minW;
+      signaturePad.maxWidth = maxW;
+    }
+
+    function undoStroke() {
+      const data = signaturePad.toData();
+      if (data.length > 0) {
+        data.pop();
+        signaturePad.fromData(data);
+      }
+    }
+
+    function clearCanvas() {
+      signaturePad.clear();
+    }
+
+    function setWaxSeal(type, text) {
+      selectedWaxSeal = { type, text };
+      const sealEl = document.getElementById('waxSealOverlay');
+      if (type === 'NONE') {
+        sealEl.classList.add('hidden');
+      } else {
+        sealEl.classList.remove('hidden');
+        document.getElementById('waxSealText').innerText = text;
+      }
+    }
+
+    // สร้างเสียงสังเคราะห์เบาๆ ด้วย Web Audio API โดยไม่ต้องพึ่งไฟล์ MP3 ภายนอก
+    function playShutterSound() {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(880, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(1760, ctx.currentTime + 0.08);
+        gain.gain.setValueAtTime(0.15, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.1);
+      } catch (e) {}
+    }
+
+    function playPenScratchSound() {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(320, ctx.currentTime);
+        gain.gain.setValueAtTime(0.03, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.05);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.05);
+      } catch (e) {}
+    }
+
+    // 6. การสลับหน้าจอและแสดงผล Dashboard ของโรงเรียน
+    function switchView(mode) {
+      const vWrite = document.getElementById('viewWrite');
+      const vDash = document.getElementById('viewDashboard');
+      const bWrite = document.getElementById('btnModeWrite');
+      const bDash = document.getElementById('btnModeDashboard');
+
+      if (mode === 'dashboard') {
+        vWrite.classList.add('hidden');
+        vDash.classList.remove('hidden');
+        bDash.className = 'px-4 py-2 rounded-lg text-sm font-semibold bg-[#D4AF37] text-[#0B132B] transition';
+        bWrite.className = 'px-4 py-2 rounded-lg text-sm font-semibold text-gray-300 hover:text-white transition';
+        fetchDashboardFromGoogleSheet();
+      } else {
+        vDash.classList.add('hidden');
+        vWrite.classList.remove('hidden');
+        bWrite.className = 'px-4 py-2 rounded-lg text-sm font-semibold bg-[#D4AF37] text-[#0B132B] transition';
+        bDash.className = 'px-4 py-2 rounded-lg text-sm font-semibold text-gray-300 hover:text-white transition';
+      }
+    }
+
+    async function fetchDashboardFromGoogleSheet() {
+      if (GAS_WEB_APP_URL.startsWith('https://script.google.com')) {
+        try {
+          const res = await fetch(GAS_WEB_APP_URL);
+          const json = await res.json();
+          if (json.status === 'success') {
+            allVisitsData = json.records;
+          }
+        } catch (err) {
+          console.warn('ใช้ข้อมูลจำลองภายในเครื่อง:', err);
+        }
+      }
+      renderDashboardCards();
+    }
+
+    function renderDashboardCards() {
+      const keyword = (document.getElementById('searchInput').value || '').toLowerCase();
+      const filtered = allVisitsData.filter(item =>
+        (item.guest_name || '').toLowerCase().includes(keyword) ||
+        (item.guest_title || '').toLowerCase().includes(keyword) ||
+        (item.visitor_category || '').toLowerCase().includes(keyword)
+      );
+
+      document.getElementById('statTotal').innerText = `${allVisitsData.length} ท่าน`;
+      document.getElementById('statToday').innerText = `${allVisitsData.length} ท่าน`;
+      const vipCount = allVisitsData.filter(i => (i.visitor_category || '').includes('VIP')).length;
+      document.getElementById('statVIP').innerText = `${vipCount} ท่าน`;
+
+      const grid = document.getElementById('dashboardGrid');
+      grid.innerHTML = filtered.map(item => `
+        <article class="bg-[#141E30] rounded-2xl overflow-hidden gold-border flex flex-col justify-between hover:scale-[1.01] transition">
+          <!-- ส่วนแสดงลายมือที่เขียนจริงคู่กับรูปถ่ายมุมซ้ายบน -->
+          <div class="relative h-56 bg-[#FCFBF7] p-2">
+            <img src="${item.handwriting_drive_url}" class="w-full h-full object-contain" alt="ลายมือผู้มาเยือน" />
+            <div class="absolute top-3 left-3 w-20 h-20 rounded-xl overflow-hidden border-2 border-[#D4AF37] shadow-lg bg-gray-900">
+              <img src="${item.photo_drive_url}" class="w-full h-full object-cover" alt="รูปถ่ายผู้มาเยือน" />
+            </div>
+            <span class="absolute top-3 right-3 bg-[#0B132B]/90 text-[#D4AF37] text-[10px] px-2.5 py-1 rounded-full border border-[#D4AF37]/50">
+              ${item.visitor_category}
+            </span>
+          </div>
+
+          <!-- ข้อมูลผู้ลงนาม -->
+          <div class="p-4 bg-[#0B132B] flex items-center justify-between">
+            <div>
+              <h4 class="font-bold text-base text-[#F3E5AB]">${item.guest_name}</h4>
+              <p class="text-xs text-gray-300">${item.guest_title}</p>
+            </div>
+            <div class="text-right">
+              <p class="text-[11px] text-cyan-400">${item.timestamp}</p>
+            </div>
+          </div>
+        </article>
+      `).join('');
+    }
+
+    function loadSampleDemoData() {
+      allVisitsData = [
+        {
+          visit_id: 'VIP-DEMO-01',
+          timestamp: '16 ต.ค. 2569 09:45 น.',
+          guest_name: 'ดร.กิตติพงศ์ เจริญรัตน์',
+          guest_title: 'ผู้อำนวยการสำนักงานเขตพื้นที่การศึกษา',
+          visitor_category: 'แขกผู้มีเกียรติ (VIP)',
+          photo_drive_url: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=400&q=80',
+          handwriting_drive_url: 'https://dummyimage.com/800x500/fcfbf7/b48308.png&text=ขอให้โรงเรียนเจริญรุ่งเรือง+สร้างเยาวชนคนเก่งตลอดไป'
+        }
+      ];
+      renderDashboardCards();
+    }
+  </script>
+</body>
+</html>
