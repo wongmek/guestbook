@@ -17,8 +17,6 @@
     .gold-gradient-text { background: linear-gradient(90deg, #D4AF37, #FFF3B0, #AA7C11); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
     .gold-border { border: 2px solid #D4AF37; box-shadow: 0 0 25px rgba(212, 175, 55, 0.18); }
     .paper-canvas-container { background-color: #FCFBF7; background-image: radial-gradient(rgba(212, 175, 55, 0.08) 1px, transparent 0), linear-gradient(to bottom, transparent 95%, rgba(212, 175, 55, 0.16) 95%); background-size: 24px 24px, 100% 48px; box-shadow: inset 0 0 40px rgba(180, 140, 50, 0.14), 0 10px 30px rgba(0,0,0,0.45); }
-    @keyframes pulseGold { 0%, 100% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.85); } 50% { box-shadow: 0 0 0 14px rgba(212, 175, 55, 0); } }
-    .camera-capturing { animation: pulseGold 1s infinite; }
     @keyframes zoomInModal { from { opacity: 0; transform: scale(0.92); } to { opacity: 1; transform: scale(1); } }
     .modal-zoom-in { animation: zoomInModal 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
   </style>
@@ -40,54 +38,58 @@
     </div>
   </header>
 
-  <!-- VIEW 1: IPAD WRITING KIOSK -->
+  <!-- VIEW 1: IPAD WRITING KIOSK (CLEAN VERSION) -->
   <main id="viewWrite" class="flex-1 container mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
-    <section class="lg:col-span-4 bg-[#141E30]/95 rounded-2xl p-5 gold-border flex flex-col justify-between space-y-5">
-      <div>
-        <div class="flex items-center justify-between mb-2.5">
-          <span class="text-xs font-semibold tracking-wider text-[#D4AF37] flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>บันทึกอัตโนมัติ</span>
-          <button onclick="manualCapturePhoto()" class="text-xs bg-[#1C2541] hover:bg-[#D4AF37] hover:text-[#0B132B] text-[#D4AF37] px-3 py-1 rounded-lg border border-[#D4AF37]/50 transition font-medium">📸 ถ่ายใหม่</button>
+    
+    <!-- Left Sidebar: Only 3 Inputs (ตามรูปที่ส่งมา) -->
+    <section class="lg:col-span-4 bg-[#141E30]/95 rounded-2xl p-6 gold-border flex flex-col justify-center space-y-6">
+      <div class="space-y-5">
+        <div>
+          <label class="block text-sm font-medium text-[#F3E5AB] mb-2">ชื่อ - นามสกุล *</label>
+          <input id="guestName" type="text" placeholder="ระบุชื่อ-นามสกุลของท่าน" class="w-full px-4 py-3 rounded-xl bg-[#0B132B] border border-[#D4AF37]/50 text-white focus:outline-none focus:border-[#D4AF37] text-base shadow-inner">
         </div>
-        <div id="cameraFrame" class="relative w-full h-56 rounded-xl overflow-hidden bg-black border-2 border-[#D4AF37] shadow-inner">
-          <video id="webcamVideo" autoplay playsinline muted class="w-full h-full object-cover transform scale-x-[-1]"></video>
-          <img id="capturedPhotoPreview" class="hidden w-full h-full object-cover" alt="ภาพถ่ายผู้มาเยือน" />
-          <div id="captureStatusBadge" class="absolute bottom-2 left-2 right-2 bg-[#0B132B]/85 text-center py-1.5 px-2 rounded-lg text-xs text-[#F3E5AB] border border-[#D4AF37]/40 backdrop-blur-sm">✨ เมื่อท่านจรดปากกาเขียน ระบบจะถ่ายภาพอัตโนมัติ</div>
-          <div id="countdownOverlay" class="hidden absolute inset-0 bg-black/45 flex items-center justify-center text-6xl font-bold text-[#D4AF37]">3</div>
+        <div>
+          <label class="block text-sm font-medium text-[#F3E5AB] mb-2">ตำแหน่ง / หน่วยงาน</label>
+          <input id="guestTitle" type="text" placeholder="ระบุตำแหน่งหรือหน่วยงาน" class="w-full px-4 py-3 rounded-xl bg-[#0B132B] border border-[#D4AF37]/50 text-white focus:outline-none focus:border-[#D4AF37] text-base shadow-inner">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-[#F3E5AB] mb-2">ประเภทผู้มาเยือน</label>
+          <select id="visitorCategory" class="w-full px-4 py-3 rounded-xl bg-[#0B132B] border border-[#D4AF37]/50 text-[#D4AF37] focus:outline-none text-base shadow-inner">
+            <option value="แขกผู้มีเกียรติ (VIP)">🌟 แขกผู้มีเกียรติ (VIP)</option>
+            <option value="คณะศึกษาดูงาน">🏛️ คณะศึกษาดูงาน</option>
+            <option value="ศิษย์เก่า">🎓 ศิษย์เก่า</option>
+            <option value="ผู้ปกครองและชุมชน">🤝 ผู้ปกครองและชุมชน</option>
+          </select>
         </div>
       </div>
-      <div class="space-y-4 flex-1 flex flex-col justify-center">
-        <input id="guestName" type="text" placeholder="ชื่อ - นามสกุล *" class="w-full px-4 py-3 rounded-xl bg-[#0B132B] border border-[#D4AF37]/50 text-white text-sm">
-        <input id="guestTitle" type="text" placeholder="ตำแหน่ง / หน่วยงาน" class="w-full px-4 py-3 rounded-xl bg-[#0B132B] border border-[#D4AF37]/50 text-white text-sm">
-        <select id="visitorCategory" class="w-full px-4 py-3 rounded-xl bg-[#0B132B] border border-[#D4AF37]/50 text-[#D4AF37] text-sm">
-          <option value="แขกผู้มีเกียรติ (VIP)">🌟 แขกผู้มีเกียรติ (VIP)</option>
-          <option value="คณะศึกษาดูงาน">🏛️ คณะศึกษาดูงาน</option>
-          <option value="ศิษย์เก่า">🎓 ศิษย์เก่า</option>
-          <option value="ผู้ปกครองและชุมชน">🤝 ผู้ปกครองและชุมชน</option>
-        </select>
-      </div>
-      <div class="bg-[#0B132B]/80 p-3.5 rounded-xl border border-[#D4AF37]/30 text-xs text-gray-300">💡 ใช้ปากกาหรือนิ้วมือเขียนลงบนกระดาษด้านขวา</div>
     </section>
 
+    <!-- Right Side: Writing Canvas -->
     <section class="lg:col-span-8 flex flex-col justify-between space-y-4">
-      <div class="relative flex-1 min-h-[440px] rounded-2xl paper-canvas-container gold-border overflow-hidden flex flex-col justify-between p-5">
+      <div class="relative flex-1 min-h-[400px] rounded-2xl paper-canvas-container gold-border overflow-hidden flex flex-col justify-between p-5">
         <div class="flex justify-between items-center border-b border-[#D4AF37]/40 pb-3 pointer-events-none select-none z-10">
-          <div><h2 class="font-royal text-2xl md:text-3xl text-[#8A6408] font-bold">สมุดลงนามผู้มาเยือนเกียรติยศ</h2><p class="text-xs text-amber-900/75">โปรดจรดปากกาเพื่อบันทึกคำอวยพร</p></div>
-          <span id="currentDateLabel" class="text-xs font-semibold text-amber-900/80 bg-amber-100/90 px-3.5 py-1.5 rounded-full border border-amber-300"></span>
+          <div class="<h2 class="font-royal text-2xl md:text-3xl text-[#8A6408] font-bold">สมุดลงนามผู้มาเยือนเกียรติยศ</h2><p class="text-xs text-amber-900/75">โปรดจรดปากกาเพื่อบันทึกคำอวยพร</p></div>
+          <span id="currentDateLabel" class="text-xs font-semibold text-amber-900/80 bg-amber-100/90 px-3 py-1.5 rounded-full border border-amber-300"></span>
         </div>
+        
+        <!-- Watermark -->
         <div class="absolute inset-0 flex items-center justify-center pointer-events-none select-none opacity-10">
           <div class="w-64 h-64 rounded-full border-8 border-[#8A6408] flex items-center justify-center"><span class="font-royal text-4xl text-[#8A6408] font-bold text-center">ตราประจำโรงเรียน</span></div>
         </div>
+
         <canvas id="signatureCanvas" class="absolute inset-0 w-full h-full cursor-crosshair z-20"></canvas>
       </div>
+
+      <!-- Toolbar & Submit -->
       <div class="bg-[#141E30]/95 p-4 rounded-2xl gold-border flex flex-wrap items-center justify-between gap-4">
         <div class="flex items-center space-x-3">
-          <span class="text-xs text-[#F3E5AB]">สีหมึก:</span>
+          <span class="text-xs text-[#F3E5AB] font-medium">สีหมึก:</span>
           <button id="inkGold" onclick="changeInk('#B48308', 2.2, 5.2, 'inkGold')" class="w-9 h-9 rounded-full bg-gradient-to-br from-yellow-300 via-amber-500 to-yellow-700 ring-2 ring-white scale-110 shadow-md"></button>
           <button id="inkNavy" onclick="changeInk('#0B132B', 2.0, 4.5, 'inkNavy')" class="w-9 h-9 rounded-full bg-[#0B132B] border-2 border-[#D4AF37] opacity-80"></button>
           <button id="inkRed" onclick="changeInk('#5C0606', 2.0, 4.5, 'inkRed')" class="w-9 h-9 rounded-full bg-[#5C0606] border-2 border-[#D4AF37] opacity-80"></button>
           <div class="h-6 w-[1px] bg-gray-600 mx-2"></div>
-          <button onclick="undoStroke()" class="px-3 py-1.5 rounded-lg bg-[#1C2541] text-xs text-gray-200 border border-gray-500">↩️ ย้อนกลับ</button>
-          <button onclick="clearCanvas()" class="px-3 py-1.5 rounded-lg bg-red-950/70 text-xs text-red-300 border border-red-700">🗑️ ล้าง</button>
+          <button onclick="undoStroke()" class="px-3 py-2 rounded-xl bg-[#1C2541] text-xs text-gray-200 border border-gray-500">↩️ ย้อนกลับ</button>
+          <button onclick="clearCanvas()" class="px-3 py-2 rounded-xl bg-red-950/70 text-xs text-red-300 border border-red-700">🗑️ ล้าง</button>
         </div>
         <button id="btnSubmit" onclick="submitGuestbook()" class="px-8 py-3.5 rounded-xl bg-gradient-to-r from-[#D4AF37] via-[#FFF3B0] to-[#AA7C11] text-[#0B132B] font-bold text-base shadow-xl transform active:scale-95 transition">✨ บันทึกคำอวยพร</button>
       </div>
@@ -97,9 +99,9 @@
   <!-- VIEW 2: DASHBOARD -->
   <section id="viewDashboard" class="hidden flex-1 container mx-auto p-4 md:p-6 space-y-6">
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      <div class="bg-[#141E30] p-4 rounded-xl gold-border"><p class="text-xs text-gray-400">ผู้ร่วมลงนามทั้งหมด</p><h3 id="statTotal" class="text-3xl font-bold gold-gradient-text mt-1">0 ท่าน</h3></div>
-      <div class="bg-[#141E30] p-4 rounded-xl border border-emerald-500/40"><p class="text-xs text-gray-400">ผู้มาเยือนล่าสุด</p><h3 id="statToday" class="text-3xl font-bold text-emerald-400 mt-1">0 ท่าน</h3></div>
-      <div class="bg-[#141E30] p-4 rounded-xl border border-amber-500/40"><p class="text-xs text-gray-400">แขก VIP</p><h3 id="statVIP" class="text-3xl font-bold text-amber-300 mt-1">0 ท่าน</h3></div>
+      <div class="bg-[#141E30] p-4 rounded-xl gold-border"><p class="text-xs text-gray-400">ผู้ร่วมลงนามทั้งหมด</p><h3 id="statTotal" class="text-3xl font-bold gold-gradient-text mt-1">0 ท่าน</h3></div >
+      <div class="bg-[#141E30] p-4 rounded-xl border border-emerald-500/40"><p class="text-xs text-gray-400">ผู้มาเยือนล่าสุด</p><h3 id="statToday" class="text-3xl font-bold text-emerald-400 mt-1">0 ท่าน</h3></div >
+      <div class="bg-[#141E30] p-4 rounded-xl border border-amber-500/40"><p class="text-xs text-gray-400">แขก VIP</p><h3 id="statVIP" class="text-3xl font-bold text-amber-300 mt-1">0 ท่าน</h3></div >
       <div class="bg-[#141E30] p-4 rounded-xl border border-cyan-500/40 flex flex-col justify-between">
         <p class="text-xs text-gray-400">ค้นหา</p>
         <input id="searchInput" oninput="renderDashboardCards()" type="text" placeholder="🔍 ค้นหา..." class="mt-1 px-3 py-1.5 rounded-lg bg-[#0B132B] border border-cyan-500/50 text-xs text-white focus:outline-none">
@@ -112,7 +114,7 @@
     <div id="dashboardGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
   </section>
 
-  <!-- OVERLAY: LOADING -->
+  <!-- LOADING OVERLAY -->
   <div id="savingLoadingOverlay" class="hidden fixed inset-0 bg-[#0B132B]/90 backdrop-blur-md z-50 flex flex-col items-center justify-center p-6">
     <div class="bg-[#141E30] max-w-md w-full rounded-2xl gold-border p-8 flex flex-col items-center text-center space-y-5 shadow-2xl modal-zoom-in">
       <div class="relative w-20 h-20 flex items-center justify-center"><div class="absolute inset-0 rounded-full border-4 border-[#D4AF37]/20"></div><div class="absolute inset-0 rounded-full border-4 border-[#D4AF37] border-t-transparent animate-spin"></div><span class="text-lg">✨</span></div>
@@ -121,7 +123,7 @@
     </div>
   </div>
 
-  <!-- OVERLAY: SOUVENIR -->
+  <!-- SOUVENIR MODAL -->
   <div id="souvenirModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
     <div class="bg-[#141E30] max-w-2xl w-full rounded-2xl gold-border p-6 space-y-4 text-center modal-zoom-in">
       <h2 class="text-2xl font-bold gold-gradient-text">🙏 ขอขอบพระคุณที่ให้เกียรติมาเยือน</h2>
@@ -133,10 +135,10 @@
     </div>
   </div>
 
-  <!-- OVERLAY: EXPANDED CARD LIGHTBOX (FIXED SLIDESHOW VERSION) -->
+  <!-- EXPANDED CARD LIGHTBOX (SLIDESHOW VERSION) -->
   <div id="cardExpandModal" onclick="handleBackdropClick(event)" class="hidden fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4 md:p-8">
     <div class="bg-[#141E30] max-w-5xl w-full rounded-2xl gold-border overflow-hidden shadow-2xl flex flex-col max-h-[92vh] relative">
-      <div class            class="px-6 py-4 bg-[#0B132B] border-b border-[#D4AF37]/40 flex items-center justify-between">
+      <div class="px-6 py-4 bg-[#0B132B] border-b border-[#D4AF37]/40 flex items-center justify-between">
         <div class="flex items-center space-x-3">
           <span id="expandCategoryBadge" class="bg-[#D4AF37]/20 text-[#D4AF37] text-xs font-semibold px-3 py-1 rounded-full border border-[#D4AF37]/50"></span>
           <span id="expandTimestamp" class="text-xs text-cyan-400"></span>
@@ -171,21 +173,17 @@
   </div>
 
   <script>
-    // --- CONFIGURATION ---
     const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxrY2jKXVbC7CNVDqIoD5ZUlFPcqoXgz8fACuaon2we32VYZo-5Dfpl3-hUK6VAHp_mcg/exec';
 
     let signaturePad;
-    let hasAutoCaptured = false;
-    let isCapturingInProgress = false;
     let capturedPhotoDataUrl = '';
     let allVisitsData = []; 
     let currentCardIndex = 0;
-    let slideshowTimer = null; // สำหรับระบบ Auto Slideshow
+    let slideshowTimer = null;
 
     window.addEventListener('DOMContentLoaded', () => {
       initDateLabel();
       initSignatureCanvas();
-      initWebcam();
       fetchDashboardFromGoogleSheet();
       window.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeExpandedCard(); });
     });
@@ -206,66 +204,6 @@
       window.addEventListener('resize', resizeCanvas);
       resizeCanvas();
       signaturePad = new SignaturePad(canvas, { minWidth: 2.2, maxWidth: 5.2, penColor: '#B48308' });
-      signaturePad.addEventListener('beginStroke', () => {
-        playPenScratchSound();
-        if (!hasAutoCaptured && !isCapturingInProgress) triggerSmartAutoCapture();
-      });
-    }
-
-    async function initWebcam() {
-      const video = document.getElementById('webcamVideo');
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false });
-        video.srcObject = stream;
-      } catch (err) { console.error(err); }
-    }
-
-    function triggerSmartAutoCapture() {
-      isCapturingInProgress = true;
-      const frame = document.getElementById('cameraFrame');
-      const countdownEl = document.getElementById('countdownOverlay');
-      const badge = document.getElementById('captureStatusBadge');
-      frame.classList.add('camera-capturing');
-      countdownEl.classList.remove('hidden');
-      let count = 3;
-      countdownEl.innerText = count;
-      badge.innerText = '📸 กำลังบันทึกภาพที่ระลึกขณะท่านเขียน...';
-      const timer = setInterval(() => {
-        count--;
-        if (count > 0) countdownEl.innerText = count;
-        else {
-          clearInterval(timer);
-          countdownEl.classList.add('hidden');
-          frame.classList.remove('camera-capturing');
-          captureSnapshotFromVideo();
-          hasAutoCaptured = true;
-          isCapturingInProgress = false;
-        }
-      }, 650);
-    }
-
-    function captureSnapshotFromVideo() {
-      const video = document.getElementById('webcamVideo');
-      if (!video.srcObject) return;
-      const tempCanvas = document.createElement('canvas');
-      tempCanvas.width = 800; tempCanvas.height = 600;
-      const ctx = tempCanvas.getContext('2d');
-      ctx.translate(tempCanvas.width, 0); ctx.scale(-1, 1);
-      ctx.drawImage(video, 0, 0, tempCanvas.width, tempCanvas.height);
-      capturedPhotoDataUrl = tempCanvas.toDataURL('image/png');
-      const previewImg = document.getElementById('capturedPhotoPreview');
-      previewImg.src = capturedPhotoDataUrl; previewImg.classList.remove('hidden');
-      video.classList.add('hidden');
-      document.getElementById('captureStatusBadge').innerText = '✅ บันทึกภาพเรียบร้อยแล้ว';
-      playShutterSound();
-    }
-
-    function manualCapturePhoto() {
-      const video = document.getElementById('webcamVideo');
-      document.getElementById('capturedPhotoPreview').classList.add('hidden');
-      video.classList.remove('hidden');
-      hasAutoCaptured = false;
-      triggerSmartAutoCapture();
     }
 
     async function submitGuestbook() {
@@ -277,20 +215,18 @@
 
       btn.disabled = true; overlay.classList.remove('hidden');
       progressBar.style.width = '25%';
-      stepText.innerText = 'กำลังเตรียมข้อมูลลายมือและภาพถ่าย...';
+      stepText.innerText = 'กำลังเตรียมข้อมูลลายมือ...';
 
-      if (!capturedPhotoDataUrl) captureSnapshotFromVideo();
       await new Promise(r => setTimeout(r, 800));
-
       const { handwritingBase64, cardBase64 } = await buildHandwritingAndCompositeImages();
       progressBar.style.width = '65%';
-      stepText.innerText = 'กำลังอัปโหลดข้อมูลสู่ Google Drive...';
+      stepText.innerText = 'กำลังบันทึกข้อมูลสู่ระบบ...';
 
       const payload = {
         guestName: document.getElementById('guestName').value || 'แขกผู้มีเกียรติ',
         guestTitle: document.getElementById('guestTitle').value || '-',
         visitorCategory: document.getElementById('visitorCategory').value,
-        photoBase64: capturedPhotoDataUrl,
+        photoBase64: '', // ไม่มีกล้องแล้ว ส่งค่าว่างไป
         handwritingBase64: handwritingBase64,
         cardBase64: cardBase64
       };
@@ -300,7 +236,7 @@
       }
 
       progressBar.style.width = '100%';
-      stepText.innerText = 'บันทึกสำเร็จ!';
+      stepText.innerText = 'สำเร็จ!';
       await new Promise(r => setTimeout(r, 500));
 
       const newRecord = {
@@ -309,7 +245,7 @@
         guest_name: payload.guestName,
         guest_title: payload.guestTitle,
         visitor_category: payload.visitorCategory,
-        photo_drive_url: payload.photoBase64,
+        photo_drive_url: '', // ไม่มีรูปหน้า
         handwriting_drive_url: handwritingBase64,
         card_drive_url: cardBase64
       };
@@ -359,7 +295,7 @@
           <div class="relative h-56 bg-[#FCFBF7] p-2 overflow-hidden">
             <img src="${item.handwriting_drive_url}" class="w-full h-full object-contain group-hover:scale-105 transition duration-300" />
             <div class="absolute top-3 left-3 w-20 h-20 rounded-xl overflow-hidden border-2 border-[#D4AF37] shadow-lg bg-gray-900">
-              <img src="${item.photo_drive_url}" class="w-full h-full object-cover" />
+              <img src="${item.photo_drive_url || 'https://via.placeholder.com/150?text=VIP'}" class="w-full h-full object-cover" />
             </div>
             <span class="absolute top-3 right-3 bg-[#0B132B]/90 text-[#D4AF37] text-[10px] px-2.5 py-1 rounded-full border border-[#D4AF37]/50">${item.visitor_category}</span>
           </div>
@@ -388,14 +324,14 @@
       }
     }
 
-    // --- LIGHTBOX SLIDESHOW LOGIC (FIXED & FULLY AUTOMATED) ---
+    // --- LIGHTBOX SLIDESHOW LOGIC (FIXED) ---
     function openExpandedCard(visitId) {
       const index = allVisitsData.findIndex(item => item.visit_id === visitId);
       if (index !== -1) {
         currentCardIndex = index;
         updateModalContent();
         document.getElementById('cardExpandModal').classList.remove('hidden');
-        startSlideshow(); // เริ่มนับเวลาถอยหลังการเลื่อนอัตโนมัติ
+        startSlideshow();
       }
     }
 
@@ -404,7 +340,7 @@
       if (!record) return;
       document.getElementById('expandCategoryBadge').innerText = record.visitor_category || 'แขกผู้มีเกียรติ';
       document.getElementById('expandTimestamp').innerText = '🕒 ' + (record.timestamp || '');
-      document.getElementById('expandGuestPhoto').src = record.photo_drive_url || '';
+      document.getElementById('expandGuestPhoto').src = record.photo_drive_url || 'https://via.placeholder.com/400x300?text=VIP+Guest';
       document.getElementById('expandGuestName').innerText = record.guest_name || '';
       document.getElementById('expandGuestTitle').innerText = record.guest_title || '';
       document.getElementById('expandCounter').innerText = `${currentCardIndex + 1} / ${allVisitsData.length}`;
@@ -414,37 +350,32 @@
     function handleNextCard(e) {
       if (e) e.stopPropagation();
       if (allVisitsData.length === 0) return;
-      // วนกลับมาใบแรก (Loop)
       currentCardIndex = (currentCardIndex + 1) % allVisitsData.length;
       updateModalContent();
-      startSlideshow(); // รีเซ็ต Timer เพื่อให้เลื่อนอีก 6 วินาทีหลังจากกดเอง
+      startSlideshow();
     }
 
     function handlePrevCard(e) {
       if (e) e.stopPropagation();
       if (allVisitsData.length === 0) return;
-      // วนกลับไปใบสุดท้าย
       currentCardIndex = (currentCardIndex - 1 + allVisitsData.length) % allVisitsData.length;
       updateModalContent();
-      startSlideshow(); // รีเซ็ต Timer
+      startSlideshow();
     }
 
     function startSlideshow() {
-      stopSlideshow(); // เคลียร์ Timer เก่าออกก่อนเสมอ
+      stopSlideshow();
       slideshowTimer = setInterval(() => {
         handleNextCard();
-      }, 6000); // เลื่อนอัตโนมัติทุก 6 วินาที
+      }, 6000);
     }
 
     function stopSlideshow() {
-      if (slideshowTimer) {
-        clearInterval(slideshowTimer);
-        slideshowTimer = null;
-      }
+      if (slideshowTimer) { clearInterval(slideshowTimer); slideshowTimer = null; }
     }
 
     function closeExpandedCard() {
-      stopSlideshow(); // หยุดการทำงานเมื่อปิดหน้าต่าง
+      stopSlideshow();
       document.getElementById('cardExpandModal').classList.add('hidden');
       currentCardIndex = -1;
     }
@@ -480,11 +411,60 @@
     }
     function undoStroke() { const data = signaturePad.toData(); if (data.length > 0) { data.pop(); signaturePad.fromData(data); } }
     function clearCanvas() { signaturePad.clear(); }
-    function playShutterSound() { /* sound logic */ }
-    function playPenScratchSound() { /* sound logic */ }
-    async function buildHandwritingAndCompositeImages() { /* composite logic */ }
-    function showSouvenirModal(cardDataUrl, guestName) { /* modal logic */ }
-    function closeSouvenirModalAndReset() { /* reset logic */ }
+    function playShutterSound() {}
+    function playPenScratchSound() {}
+    async function buildHandwritingAndCompositeImages() {
+      const signCanvas = document.getElementById('signatureCanvas');
+      const exportSignCanvas = document.createElement('canvas');
+      exportSignCanvas.width = 1200; exportSignCanvas.height = 750;
+      const sCtx = exportSignCanvas.getContext('2d');
+      sCtx.fillStyle = '#FCFBF7'; sCtx.fillRect(0, 0, 1200, 750);
+      sCtx.strokeStyle = '#D4AF37'; sCtx.lineWidth = 8; sCtx.strokeRect(16, 16, 1168, 718);
+      sCtx.drawImage(signCanvas, 0, 0, 1200, 750);
+      const handwritingBase64 = exportSignCanvas.toDataURL('image/png');
+
+      const cardCanvas = document.createElement('canvas');
+      cardCanvas.width = 1400; cardCanvas.height = 750;
+      const cCtx = cardCanvas.getContext('2d');
+      cCtx.fillStyle = '#0B132B'; cCtx.fillRect(0, 0, 1400, 750);
+      cCtx.strokeStyle = '#D4AF37'; cCtx.lineWidth = 6; cCtx.strokeRect(20, 20, 1360, 710);
+
+      // Use a VIP Icon placeholder since camera is removed
+      cCtx.fillStyle = '#1C2541';
+      cCtx.fillRect(50, 60, 420, 320);
+      cCtx.strokeRect(50, 60, 420, 320);
+      cCtx.fillStyle = '#D4AF37';
+      cCtx.font = 'bold 40px Prompt, sans-serif';
+      cCtx.textAlign = 'center';
+      cCtx.fillText('🌟', 260, 200);
+
+      const guestName = document.getElementById('guestName').value || 'แขกผู้มีเกียรติ';
+      const guestTitle = document.getElementById('guestTitle').value || '-';
+      const category = document.getElementById('visitorCategory').value;
+      cCtx.fillStyle = '#D4AF37'; cCtx.font = 'bold 30px Prompt, sans-serif'; cCtx.textAlign = 'left';
+      cCtx.fillText(guestName, 50, 435);
+      cCtx.fillStyle = '#E2E8F0'; cCtx.font = '22px Prompt, sans-serif';
+      cCtx.fillText(guestTitle, 50, 475);
+      cCtx.fillStyle = '#5BC0BE'; cCtx.font = '18px Prompt, sans-serif';
+      cCtx.fillText(category + ' | ' + new Date().toLocaleString('th-TH'), 50, 515);
+
+      const signImg = await loadImage(handwritingBase64);
+      cCtx.drawImage(signImg, 510, 60, 840, 630);
+      return { handwritingBase664: handwritingBase64, cardBase64: cardCanvas.toDataURL('image/png') };
+    }
+    function showSouvenirModal(cardDataUrl, guestName) {
+      document.getElementById('modalCompositePreview').src = cardDataUrl;
+      const qrContainer = document.getElementById('qrcodeContainer');
+      qrContainer.innerHTML = '';
+      new QRCode(qrContainer, { text: window.location.href + '?guest=' + encodeURIComponent(guestName), width: 128, height: 128 });
+      document.getElementById('souvenirModal').classList.remove('hidden');
+    }
+    function closeSouvenirModalAndReset() {
+      document.getElementById('souvenirModal').classList.add('hidden');
+      signaturePad.clear();
+      document.getElementById('guestName').value = '';
+      document.getElementById('guestTitle').value = '';
+    }
     async function loadImage(src) { return new Promise((resolve) => { const img = new Image(); img.crossOrigin = 'anonymous'; img.onload = () => resolve(img); img.src = src; }); }
   </script>
 </body>
