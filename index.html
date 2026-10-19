@@ -8,9 +8,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Charm:wght@400;700&family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Libraries via cdnjs -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/signature_pad/4.1.7/signature_pad.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/canvas-confetti/1.9.2/confetti.browser.min.js"></script>
+  <!-- Libraries -->
+  <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
   <style>
@@ -476,7 +476,7 @@
       triggerSmartAutoCapture();
     }
 
-    // 4. สร้างไฟล์ภาพลายมือและภาพการ์ดที่ระลึก (แก้ไขครบสมบูรณ์ ไม่เกิด Error undefined)
+    // 4. สร้างไฟล์ภาพลายมือและภาพการ์ดที่ระลึก
     async function buildHandwritingAndCompositeImages() {
       const signCanvas = document.getElementById('signatureCanvas');
       const exportSignCanvas = document.createElement('canvas');
@@ -544,7 +544,7 @@
       });
     }
 
-    // 5. กดปุ่มบันทึกคำอวยพร (ไม่ต้องใช้ค่าจากช่องกรอกข้อมูล 3 ช่องอีกต่อไป)
+    // 5. กดปุ่มบันทึกคำอวยพร
     async function submitGuestbook() {
       if (signaturePad.isEmpty()) {
         alert('กรุณาจรดปากกาเขียนคำอวยพรหรือลงลายมือชื่อก่อนกดบันทึกครับ');
@@ -604,7 +604,17 @@
 
       overlay.classList.add('hidden');
       btn.disabled = false;
-      confetti({ particleCount: 110, spread: 80, origin: { y: 0.6 }, colors: ['#D4AF37', '#FFF3B0', '#AA7C11'] });
+
+      // เช็คก่อนเรียกใช้ confetti เพื่อป้องกัน ReferenceError
+      if (typeof window.confetti === 'function') {
+        window.confetti({
+          particleCount: 110,
+          spread: 80,
+          origin: { y: 0.6 },
+          colors: ['#D4AF37', '#FFF3B0', '#AA7C11']
+        });
+      }
+
       showSouvenirModal(cardBase64);
     }
 
@@ -612,11 +622,13 @@
       document.getElementById('modalCompositePreview').src = cardDataUrl;
       const qrContainer = document.getElementById('qrcodeContainer');
       qrContainer.innerHTML = '';
-      new QRCode(qrContainer, {
-        text: window.location.href,
-        width: 128,
-        height: 128
-      });
+      if (typeof QRCode === 'function') {
+        new QRCode(qrContainer, {
+          text: window.location.href,
+          width: 128,
+          height: 128
+        });
+      }
       document.getElementById('souvenirModal').classList.remove('hidden');
     }
 
@@ -630,7 +642,7 @@
       capturedPhotoDataUrl = '';
     }
 
-    // 6. การดึงข้อมูลแสดงบน Dashboard (แสดงเฉพาะรูปถ่าย + ลายมือ + เวลา)
+    // 6. การดึงข้อมูลแสดงบน Dashboard
     async function fetchDashboardFromGoogleSheet() {
       if (!GAS_WEB_APP_URL.startsWith('https://script.google.com')) {
         renderDashboardCards();
@@ -728,7 +740,7 @@
     function handleNextCard(e) {
       if (e) e.stopPropagation();
       stepSlide(1);
-      if (isAutoSlideEnabled) startSlideshow(); // รีเซ็ตเวลานับใหม่เมื่อกดเอง
+      if (isAutoSlideEnabled) startSlideshow();
     }
 
     function handlePrevCard(e) {
@@ -741,8 +753,8 @@
       stopSlideshow();
       if (!isAutoSlideEnabled) return;
       slideshowTimer = setInterval(() => {
-        stepSlide(1); // เลื่อนไปภาพถัดไป และวนกลับไป 0 เมื่อถึงภาพสุดท้าย
-      }, 4500); // เลื่อนอัตโนมัติทุกๆ 4.5 วินาที
+        stepSlide(1);
+      }, 4500);
     }
 
     function stopSlideshow() {
